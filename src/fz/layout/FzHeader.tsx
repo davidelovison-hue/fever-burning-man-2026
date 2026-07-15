@@ -1,5 +1,5 @@
 import type { UserRole } from '../../trs/trsTypes';
-import { ROLE_CONFIG, getActorName } from '../../trs/roleConfig';
+import { FZ_DISPLAY_USER_NAME, ROLE_CONFIG } from '../../trs/roleConfig';
 
 const ROLE_OPTIONS: UserRole[] = ['admin', 'approver', 'requester'];
 
@@ -49,7 +49,7 @@ export function FzHeader({
 
         <div className="headerbar__user">
           <div className="headerbar__user-info">
-            <span className="headerbar__user-name">{getActorName(role)}</span>
+            <span className="headerbar__user-name">{FZ_DISPLAY_USER_NAME}</span>
             <label className="headerbar__role-picker">
               <span className="headerbar__role-picker-label">View as</span>
               <span className="headerbar__role-select-wrap">

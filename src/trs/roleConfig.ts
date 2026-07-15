@@ -1,7 +1,9 @@
 import type { UserRole } from './trsTypes';
 
+export const FZ_DISPLAY_USER_NAME = 'Ryan Kim';
+
 export const DEMO_ACTOR_NAMES: Record<UserRole, string> = {
-  admin: 'Generic Name',
+  admin: 'Ryan Kim',
   approver: 'Priya Sharma',
   requester: 'Maya Okonkwo',
 };
