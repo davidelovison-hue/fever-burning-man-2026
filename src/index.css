@@ -1,0 +1,38 @@
+@import "tailwindcss";
+@import "./fz/fz.css";
+@import "./fz/reservations/fzReservations.css";
+@import "./trs/trs.css";
+
+:root {
+  /* Fever Brand Colors */
+  --fever-primary: #8a1343;
+  --fever-primary-light: #f5e6ec;
+  --fever-dark: #031419;
+  --fever-gray: #536b75;
+  --fever-light-gray: #a7b2ba;
+  --fever-border: #ccd2d8;
+  --fever-bg: #f2f3f3;
+  --fever-blue: #0079ca;
+  --fever-green: #24a865;
+}
+
+body {
+  margin: 0;
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hide scrollbar for carousel */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe area for mobile sticky buttons */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
