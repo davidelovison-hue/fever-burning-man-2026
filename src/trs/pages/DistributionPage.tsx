@@ -43,18 +43,28 @@ function distributionRowsToCsv(rows: DistributionRow[]): string {
 }
 
 export function DistributionPage() {
-  const { state, getDistributionRows } = useTrs();
+  const { state, role, leadCampId, getDistributionRows } = useTrs();
+  const isCampLead = role === 'requester';
+  const leadCamp = state.camps.find((c) => c.id === leadCampId);
   const [campFilter, setCampFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState<TicketTypeId | ''>('');
 
   const rows = useMemo(() => {
     let list = getDistributionRows();
-    if (campFilter) list = list.filter((r) => r.campId === campFilter);
+    if (isCampLead) {
+      list = list.filter((r) => r.campId === leadCampId);
+    } else if (campFilter) {
+      list = list.filter((r) => r.campId === campFilter);
+    }
     if (typeFilter) list = list.filter((r) => r.ticketType === typeFilter);
     return list;
-  }, [getDistributionRows, campFilter, typeFilter]);
+  }, [getDistributionRows, campFilter, typeFilter, isCampLead, leadCampId]);
 
-  const filteredCamp = campFilter ? state.camps.find((c) => c.id === campFilter) : undefined;
+  const filteredCamp = isCampLead
+    ? leadCamp
+    : campFilter
+      ? state.camps.find((c) => c.id === campFilter)
+      : undefined;
 
   const handleExport = () => {
     if (rows.length === 0) return;
@@ -67,21 +77,32 @@ export function DistributionPage() {
   return (
     <TrsPageShell
       title="Distribution"
-      description="Ledger of approved tickets — who received what. Filter by camp or ticket type."
+      description={
+        isCampLead
+          ? `Approved tickets for ${leadCamp?.name ?? 'your camp'}. Filter by ticket type or export your crew list.`
+          : 'Ledger of approved tickets — who received what. Filter by camp or ticket type.'
+      }
       flushContent
     >
       <div className="trs-allocation-section">
         <div className="trs-filter-bar">
           <div className="trs-filter-bar__fields">
-            <label className="fz-field trs-filter-bar__field">
-              <span className="fz-field__label">Camp</span>
-              <select className="fz-select" value={campFilter} onChange={(e) => setCampFilter(e.target.value)}>
-                <option value="">All camps</option>
-                {state.camps.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </label>
+            {isCampLead ? (
+              <label className="fz-field trs-filter-bar__field">
+                <span className="fz-field__label">Camp</span>
+                <input className="fz-input" value={leadCamp?.name ?? 'Your camp'} readOnly />
+              </label>
+            ) : (
+              <label className="fz-field trs-filter-bar__field">
+                <span className="fz-field__label">Camp</span>
+                <select className="fz-select" value={campFilter} onChange={(e) => setCampFilter(e.target.value)}>
+                  <option value="">All camps</option>
+                  {state.camps.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label className="fz-field trs-filter-bar__field">
               <span className="fz-field__label">Ticket type</span>
               <select className="fz-select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as TicketTypeId | '')}>

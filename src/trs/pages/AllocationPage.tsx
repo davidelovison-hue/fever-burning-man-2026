@@ -127,7 +127,7 @@ function CampDrawerFields({
   );
 }
 
-function ManageCampsSection() {
+function ManageCampsSection({ readOnly = false }: { readOnly?: boolean }) {
   const { state, createCamp, updateCamp, deactivateCamp } = useTrs();
   const [drawerMode, setDrawerMode] = useState<'create' | 'edit' | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -176,11 +176,17 @@ function ManageCampsSection() {
       <div className="trs-section-head">
         <div>
           <h3 className="trs-section-head__title">Manage camps</h3>
-          <p className="trs-section-head__desc">Create camp records with contact and department info. Ticket caps are set separately.</p>
+          <p className="trs-section-head__desc">
+            {readOnly
+              ? 'View camp records with contact and department info. Editing is restricted to admins.'
+              : 'Create camp records with contact and department info. Ticket caps are set separately.'}
+          </p>
         </div>
-        <button type="button" className="fz-btn-primary" onClick={openCreate}>
-          Add camp
-        </button>
+        {!readOnly && (
+          <button type="button" className="fz-btn-primary" onClick={openCreate}>
+            Add camp
+          </button>
+        )}
       </div>
 
       <div className="trs-table-wrap">
@@ -203,8 +209,8 @@ function ManageCampsSection() {
               state.camps.map((camp) => (
                 <tr
                   key={camp.id}
-                  className="trs-table__clickable"
-                  onClick={() => openEdit(camp)}
+                  className={readOnly ? undefined : 'trs-table__clickable'}
+                  onClick={readOnly ? undefined : () => openEdit(camp)}
                 >
                   <td className="trs-col-camp"><strong>{camp.name}</strong></td>
                   <td className="trs-col-email">{camp.leadEmail}</td>
@@ -218,30 +224,32 @@ function ManageCampsSection() {
         </table>
       </div>
 
-      <FzSideDrawer
-        open={drawerMode !== null}
-        title={drawerMode === 'edit' ? `Edit camp · ${editingCamp?.name ?? ''}` : 'New camp'}
-        onClose={closeDrawer}
-        onSave={handleSave}
-        saveLabel="Save"
-        saveDisabled={!valid}
-      >
-        <CampDrawerFields draft={draft} onChange={setDraft} />
-        {drawerMode === 'edit' && editingCamp?.status !== 'inactive' && (
-          <div className="fz-drawer-section fz-drawer-section--danger">
-            <h3 className="fz-drawer-section__title">Danger zone</h3>
-            <p className="fz-drawer-field__hint">Deactivate this camp to stop new ticket requests. Existing allocations are preserved.</p>
-            <button type="button" className="fz-btn-secondary trs-btn-danger" onClick={handleDeactivate}>
-              Deactivate camp
-            </button>
-          </div>
-        )}
-      </FzSideDrawer>
+      {!readOnly && (
+        <FzSideDrawer
+          open={drawerMode !== null}
+          title={drawerMode === 'edit' ? `Edit camp · ${editingCamp?.name ?? ''}` : 'New camp'}
+          onClose={closeDrawer}
+          onSave={handleSave}
+          saveLabel="Save"
+          saveDisabled={!valid}
+        >
+          <CampDrawerFields draft={draft} onChange={setDraft} />
+          {drawerMode === 'edit' && editingCamp?.status !== 'inactive' && (
+            <div className="fz-drawer-section fz-drawer-section--danger">
+              <h3 className="fz-drawer-section__title">Danger zone</h3>
+              <p className="fz-drawer-field__hint">Deactivate this camp to stop new ticket requests. Existing allocations are preserved.</p>
+              <button type="button" className="fz-btn-secondary trs-btn-danger" onClick={handleDeactivate}>
+                Deactivate camp
+              </button>
+            </div>
+          )}
+        </FzSideDrawer>
+      )}
     </>
   );
 }
 
-function AllocateTicketsSection() {
+function AllocateTicketsSection({ readOnly = false }: { readOnly?: boolean }) {
   const { state, allocateTickets, setAllocationCap, getUsageForCamp } = useTrs();
   const activeCamps = state.camps.filter((c) => c.status !== 'inactive');
   const [campFilter, setCampFilter] = useState('');
@@ -301,11 +309,17 @@ function AllocateTicketsSection() {
       <div className="trs-section-head">
         <div>
           <h3 className="trs-section-head__title">Allocate tickets</h3>
-          <p className="trs-section-head__desc">Assign ticket quantities to existing camps. Quantities are additive — each allocation builds the cap for that ticket type.</p>
+          <p className="trs-section-head__desc">
+            {readOnly
+              ? 'View ticket allocations per camp. Editing is restricted to admins.'
+              : 'Assign ticket quantities to existing camps. Quantities are additive — each allocation builds the cap for that ticket type.'}
+          </p>
         </div>
-        <button type="button" className="fz-btn-primary" onClick={openAllocate} disabled={activeCamps.length === 0}>
-          Allocate tickets
-        </button>
+        {!readOnly && (
+          <button type="button" className="fz-btn-primary" onClick={openAllocate} disabled={activeCamps.length === 0}>
+            Allocate tickets
+          </button>
+        )}
       </div>
 
       <div className="trs-allocate-filter">
@@ -332,24 +346,26 @@ function AllocateTicketsSection() {
               <th className="trs-col-cap num">Cap</th>
               <th className="trs-col-used num">Used</th>
               <th className="trs-col-left num">Left</th>
-              <th className="trs-col-actions actions">Actions</th>
+              {!readOnly && <th className="trs-col-actions actions">Actions</th>}
             </tr>
           </thead>
           <tbody>
             {allocationRows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="trs-empty">
+                <td colSpan={readOnly ? 5 : 6} className="trs-empty">
                   {campFilter
                     ? 'No ticket allocations for this camp.'
-                    : 'No ticket allocations yet. Click "Allocate tickets" to add caps for a camp.'}
+                    : readOnly
+                      ? 'No ticket allocations yet.'
+                      : 'No ticket allocations yet. Click "Allocate tickets" to add caps for a camp.'}
                 </td>
               </tr>
             ) : (
               allocationRows.map(({ camp, usage }) => (
                 <tr
                   key={`${camp.id}-${usage.ticketType}`}
-                  className="trs-table__clickable"
-                  onClick={() => openEdit(camp, usage.ticketType, usage.cap, usage.approved, usage.pending)}
+                  className={readOnly ? undefined : 'trs-table__clickable'}
+                  onClick={readOnly ? undefined : () => openEdit(camp, usage.ticketType, usage.cap, usage.approved, usage.pending)}
                 >
                   <td className="trs-col-camp">{camp.name}</td>
                   <td className="trs-col-type">
@@ -362,20 +378,22 @@ function AllocateTicketsSection() {
                   <td className="trs-col-left num">
                     <RemainingCount value={usage.remaining} />
                   </td>
-                  <td className="trs-col-actions actions">
-                    <div className="trs-table__row-actions">
-                      <button
-                        type="button"
-                        className="fz-btn-secondary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openEdit(camp, usage.ticketType, usage.cap, usage.approved, usage.pending);
-                        }}
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  </td>
+                  {!readOnly && (
+                    <td className="trs-col-actions actions">
+                      <div className="trs-table__row-actions">
+                        <button
+                          type="button"
+                          className="fz-btn-secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEdit(camp, usage.ticketType, usage.cap, usage.approved, usage.pending);
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))
             )}
@@ -383,7 +401,9 @@ function AllocateTicketsSection() {
         </table>
       </div>
 
-      <FzSideDrawer
+      {!readOnly && (
+        <>
+          <FzSideDrawer
         open={drawerMode === 'allocate'}
         title="Allocate tickets"
         onClose={closeDrawer}
@@ -464,6 +484,8 @@ function AllocateTicketsSection() {
           </label>
         </div>
       </FzSideDrawer>
+        </>
+      )}
     </>
   );
 }
@@ -646,6 +668,8 @@ function OverviewSection({ onSelectCamp }: { onSelectCamp: (id: string) => void 
 }
 
 export function AllocationPage() {
+  const { role } = useTrs();
+  const isReadOnly = role === 'approver';
   const [section, setSection] = useState<Section>('manage');
   const [detailCampId, setDetailCampId] = useState<string | null>(null);
 
@@ -657,7 +681,11 @@ export function AllocationPage() {
   return (
     <TrsPageShell
       title="Allocation"
-      description="Manage camps, allocate ticket caps per type, and monitor usage across all camps."
+      description={
+        isReadOnly
+          ? 'View camps, ticket caps per type, and usage across all camps. Editing is restricted to admins.'
+          : 'Manage camps, allocate ticket caps per type, and monitor usage across all camps.'
+      }
     >
       <div className="trs-allocation-tabs">
         {(['manage', 'allocate', 'overview'] as Section[]).map((s) => (
@@ -676,9 +704,9 @@ export function AllocationPage() {
         {detailCampId ? (
           <CampDetailView campId={detailCampId} onBack={() => setDetailCampId(null)} />
         ) : section === 'manage' ? (
-          <ManageCampsSection />
+          <ManageCampsSection readOnly={isReadOnly} />
         ) : section === 'allocate' ? (
-          <AllocateTicketsSection />
+          <AllocateTicketsSection readOnly={isReadOnly} />
         ) : (
           <OverviewSection onSelectCamp={openDetail} />
         )}

@@ -42,10 +42,10 @@ export interface TrsScreen {
 export const TRS_MODULE_LABEL = 'Ticket requests';
 
 export const TRS_SCREENS: TrsScreen[] = [
-  { id: 'allocation', label: 'Allocation', path: '/allocation', roles: ['admin'] },
-  { id: 'bulk-request', label: 'Bulk request', path: '/bulk-request', roles: ['admin', 'approver', 'requester'] },
+  { id: 'allocation', label: 'Allocation', path: '/allocation', roles: ['admin', 'approver'] },
+  { id: 'bulk-request', label: 'Bulk request', path: '/bulk-request', roles: ['admin', 'requester'] },
   { id: 'approvals', label: 'Approvals', path: '/approvals', roles: ['admin', 'approver'] },
-  { id: 'distribution', label: 'Distribution', path: '/distribution', roles: ['admin', 'approver'] },
+  { id: 'distribution', label: 'Distribution', path: '/distribution', roles: ['admin', 'approver', 'requester'] },
 ];
 
 export const ROLE_CONFIG: Record<UserRole, { label: string; description: string; homeRoute: string }> = {
